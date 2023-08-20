@@ -1,0 +1,79 @@
+<html>
+
+<head>
+   <title>{% block title %}Library{% endblock %}</title>
+
+   <link rel="shortcut icon" href="{{url_for('static',filename='library.png')}}">
+
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+
+   <nav class="navbar navbar-default">
+
+      <div class="container">
+
+         <!-- <div class="navbar-header"> -->
+         <a class="navbar-brand" style="background-color: rgb(137, 137, 217);color: white;" href="/">
+            <span class="fa fa-home" aria-hidden="true">
+            </span>
+         </a>
+
+         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+            data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+         </button>
+         <!-- </div> -->
+         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+
+               <li><a href="{{ url_for('member_bp.member') }}">Member</a></li>
+               <li><a href="{{ url_for('author_bp.author') }}">Author</a></li>
+               <li><a href="{{ url_for('book_bp.book') }}">Book</a></li>
+               <li><a href="{{ url_for('issue_return_book_bp.issue_return_book') }}">Issue/ Return Book</a></li>
+               <li><a href="{{ url_for('transaction_bp.transaction',member_id='0') }}">Transaction</a></li>
+               <li><a href="{{ url_for('setting_bp.setting') }}">Setting</a></li>
+            </ul>
+         </div>
+      </div>
+
+   </nav>
+
+   <!-- <div class="container"> -->
+   <div class="well text-center">
+      <h1>{% block pagetitle %}WELCOME TO LIBRARY MANAGEMENT SYSTEM{% endblock %}</h1>
+   </div>
+   {% block body %}
+
+   <div class="container">
+      <div class="row">
+         <div class="col-md-12">
+            <img src="{{url_for('static',filename='library.png')}}" class="img-circle img-responsive center-block"
+               alt="library" width="304" height="236">
+
+         </div>
+      </div>
+
+
+
+   </div>
+   {% endblock %}
+   <div class="well well-sm text-center">
+      <h6>© alkamapanjwani</h6>
+   </div>
+   <!-- </div> -->
+
+</body>
+
+</html>
