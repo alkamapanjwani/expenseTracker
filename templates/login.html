@@ -1,9 +1,9 @@
 <html>
 
 <head>
-   <title>{% block title %}Library{% endblock %}</title>
+   <title>{% block title %}Expense Tracker{% endblock %}</title>
 
-   <link rel="shortcut icon" href="{{url_for('static',filename='library.png')}}">
+   <link rel="shortcut icon" href="{{url_for('static',filename='expense.jpg')}}">
 
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
@@ -38,7 +38,7 @@
             {%endwith%}
 
 
-            <form action="" method="POST">
+            <form action="{{ url_for('login_authorize') }}" method="POST">
 
 
                 <div class="form-group">
@@ -71,7 +71,7 @@
 
 
                 <div class="form-group">
-                    <a class="btn btn-primary" href="register.html" role="button">Register</a>
+                    <a class="btn btn-primary" href="/register" role="button">Register</a>
 <!--                    <a href="/"><button class="btn btn-primary" type="submit"> Register </button></a>-->
 
                 </div>

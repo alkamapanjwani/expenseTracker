@@ -1,9 +1,9 @@
 <html>
 
 <head>
-   <title>{% block title %}Library{% endblock %}</title>
+   <title>{% block title %}Expense Tracker{% endblock %}</title>
 
-   <link rel="shortcut icon" href="{{url_for('static',filename='library.png')}}">
+   <link rel="shortcut icon" href="{{url_for('static',filename='expense.jpg')}}">
 
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
@@ -47,15 +47,15 @@
 
    <!-- <div class="container"> -->
    <div class="well text-center">
-      <h1>{% block pagetitle %}WELCOME TO LIBRARY MANAGEMENT SYSTEM{% endblock %}</h1>
+      <h1>{% block pagetitle %}WELCOME TO EXPENSE TRACKER{% endblock %}</h1>
    </div>
    {% block body %}
 
    <div class="container">
       <div class="row">
          <div class="col-md-12">
-<!--            <img src="{{url_for('static',filename='library.png')}}" class="img-circle img-responsive center-block"-->
-<!--               alt="library" width="304" height="236">-->
+            <img src="{{url_for('static',filename='expense.jpg')}}" class="img-circle img-responsive center-block"
+              alt="expense tracker" width="304" height="236">
 
          </div>
       </div>
