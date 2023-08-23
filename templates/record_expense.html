@@ -1,0 +1,94 @@
+{% extends 'index.html' %}
+
+{% block title %}Record Expense{% endblock %}
+
+{% block pagetitle %}Record Expense{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+
+            <div class="alert alert-success alert-dismissable" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                    <span aria-hidden="true">x</span>
+                </button>
+                {{message}}
+            </div>
+
+
+            {%endfor%}
+            {%endif%}
+            {%endwith%}
+
+
+            <form action="{{ url_for('insert_record_expense') }}" method="POST">
+
+<div class="form-group">
+
+
+                    <label>Expense Head:</label>
+                    <select class="form-control" name="expense_head_id" required="1">
+                        {% for row in res.expense_head_list %}
+                        <option value="{{row.0}}" >{{row.1}}</option>
+                        {%endfor%}
+                    </select>
+
+
+                </div>
+<div class="form-group">
+
+
+                    <label>Income Head:</label>
+                    <select class="form-control" name="income_head_id" required="1">
+                        {% for row in res.income_head_list %}
+                        <option value="{{row.0}}" >{{row.1}}</option>
+                        {%endfor%}
+                    </select>
+
+
+                </div>
+                <div class="form-group">
+
+                    <label>Amount:</label>
+                    <input type="number" step=".01" class="form-control" name="amount" required="1">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Comment:</label>
+                    <input type="text" class="form-control"  name="comment" >
+
+                </div>
+                <div class="form-group">
+
+
+                    <button class="btn btn-primary" type="submit"> Submit </button>
+
+
+                </div>
+
+
+            </form>
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+</div>
+
+{% endblock %}
