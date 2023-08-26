@@ -1,23 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import psycopg2
-# from flask_session import Session
+from config import DB_HOST,DB_NAME,DB_USER,DB_PASS
+from models.users import users
 
 app = Flask(__name__)
 app.secret_key = "expense_tracker"
 
-# app.config["SESSION_PERMANENT"] = False
-# app.config["SESSION_TYPE"] = "filesystem"
-# Session(app)
-
-# DB_HOST = "localhost"
-# DB_NAME = "expense_tracker_db"
-# DB_USER = "postgres"
-# DB_PASS = "postgres"
-
-DB_HOST = "dpg-cjiee4fjbvhs7394f1kg-a.oregon-postgres.render.com"
-DB_NAME = "expense_tracker_db_gmrf"
-DB_USER = "expense_tracker_db_gmrf_user"
-DB_PASS = "Fh9ewHDtCE3E1WzDWu2CiwQ5U1P4Xr0B"
+users=users()
 
 @app.route("/")
 def login():
@@ -57,12 +46,7 @@ def login_authorize():
         error = validate_login_authorize(username,password)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("SELECT * FROM users where username=%s and password=%s", (username,password),)
-                user_id = cur.fetchone()[0]
-                cur.close()
-                conn.close()
+                user_id,user_name= users.login_authorize(username,password)
                 print(user_id)
                 if not user_id:
                     flash("Username or Password is Incorrect")
@@ -70,7 +54,7 @@ def login_authorize():
                 else:
                     session['userid'] = user_id
                     # print(session['userid'])
-                    session['username'] = request.form.get("username")
+                    session['username'] = user_name
                     # print(session['username'])
                     return redirect(url_for("index"))
             except Exception as error:
@@ -304,8 +288,9 @@ def expense_report():
                 cur = conn.cursor()
                 cur.execute("SELECT el.expense_list_id,el.created_timestamp,ih.income_head_name,el.comment,el.amount "
                             "FROM expense_list el inner join income_head ih on el.income_head_id = ih.income_head_id "
-                            "where el.user_id=%s and el.expense_head_id=%s ORDER BY expense_list_id desc",
-                            (session['userid'],expense_head_id))
+                            "where el.user_id=%s and el.expense_head_id=%s and date(el.created_timestamp) >= %s "
+                            "and date(el.created_timestamp) <= %s ORDER BY expense_list_id desc",
+                            (session['userid'],expense_head_id,fromdate,todate))
                 trans_list = cur.fetchall()
                 print(type(trans_list))
                 print(trans_list)
