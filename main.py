@@ -286,16 +286,44 @@ def insert_record_expense():
             return redirect(url_for("record_expense"))
 
 
-@app.route("/expense_report")
+@app.route("/expense_report", methods=["POST", "GET"])
 def expense_report():
     if 'userid' in session:
-        conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM expense_head where user_id=%s", (session['userid'],))
-        expense_head_list = cur.fetchall()
-        cur.close()
-        conn.close()
-        return render_template("expense_report.html",res={"username":session['username'],"expense_head_list":expense_head_list})
+        try:
+            conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM expense_head where user_id=%s", (session['userid'],))
+            expense_head_list = cur.fetchall()
+            cur.close()
+            conn.close()
+            if request.method == "POST":
+                fromdate = request.form["fromdate"]
+                todate = request.form["todate"]
+                expense_head_id = request.form.get('expense_head_id')
+                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+                cur = conn.cursor()
+                cur.execute("SELECT el.expense_list_id,el.created_timestamp,ih.income_head_name,el.comment,el.amount "
+                            "FROM expense_list el inner join income_head ih on el.income_head_id = ih.income_head_id "
+                            "where el.user_id=%s and el.expense_head_id=%s ORDER BY expense_list_id desc",
+                            (session['userid'],expense_head_id))
+                trans_list = cur.fetchall()
+                print(type(trans_list))
+                print(trans_list)
+                TotalAmt=sum([pair[4] for pair in trans_list])
+                cur.close()
+                cur.close()
+                conn.close()
+                return render_template("expense_report.html",res={"username":session['username'],
+                                                                  "expense_head_list":expense_head_list,
+                                                                  "expense_head_id":expense_head_id,"trans_list":trans_list,
+                                                                  "fromdate":fromdate,
+                                                                  "todate":todate,"TotalAmt":TotalAmt})
+            else:
+                return render_template("expense_report.html",res={"username":session['username'],
+                                                                  "expense_head_list":expense_head_list})
+        except Exception as error:
+            print(error)
+            return render_template("error_occured.html")
     else:
         return redirect(url_for("login"))
 
