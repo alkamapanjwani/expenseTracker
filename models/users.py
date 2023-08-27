@@ -6,3 +6,10 @@ class users:
                                          (username, password), )
         dbObj.destroy()
         return user_dets[0],user_dets[2]
+
+
+    def register_user(self,fullname,username, password):
+        dbObj = DB()
+        dbObj.execute("INSERT INTO users(full_name, username, password) VALUES (%s, %s, %s)",
+                            (fullname,username,password),)
+        dbObj.destroy()

@@ -5,10 +5,17 @@ class DB:
         self.conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
         self.cursor = self.conn.cursor()
 
+    def execute_fetchall(self, query, query_params):
+        self.cursor.execute(query, query_params)
+        return self.cursor.fetchall()
+
     def execute_fetchone(self, query, query_params):
         self.cursor.execute(query, query_params)
         return self.cursor.fetchone()
 
+    def execute(self, query, query_params):
+        self.cursor.execute(query, query_params)
+        self.conn.commit()
 
     def destroy(self):
         self.cursor.close()

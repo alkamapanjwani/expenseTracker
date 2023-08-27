@@ -2,11 +2,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import psycopg2
 from config import DB_HOST,DB_NAME,DB_USER,DB_PASS
 from models.users import users
+from models.expense_head import expense_head
+from models.income_head import income_head
+from models.record_expense import record_expense
+from models.expense_report import expense_report
 
 app = Flask(__name__)
 app.secret_key = "expense_tracker"
 
-users=users()
+obj_users=users()
+obj_expense_head=expense_head()
+obj_income_head=income_head()
+obj_record_expense=record_expense()
+obj_expense_report=expense_report()
 
 @app.route("/")
 def login():
@@ -14,28 +22,6 @@ def login():
         return redirect(url_for("index"))
     else:
         return render_template("login.html")
-
-
-@app.route('/logout')
-def logout():
-    if 'userid' in session:
-        session.pop('userid',None)
-        session.pop('username',None)
-        flash("User Logged Out")
-    return render_template('login.html');
-
-
-@app.route("/register")
-def register():
-    return render_template("register.html")
-
-
-@app.route("/home")
-def index():
-    if 'userid' in session:
-        return render_template("index.html",res={"username":session['username']})
-    else:
-        return redirect(url_for("login"))
 
 
 @app.route("/login_authorize", methods=["POST"])
@@ -46,7 +32,7 @@ def login_authorize():
         error = validate_login_authorize(username,password)
         if error is None:
             try:
-                user_id,user_name= users.login_authorize(username,password)
+                user_id,user_name= obj_users.login_authorize(username,password)
                 print(user_id)
                 if not user_id:
                     flash("Username or Password is Incorrect")
@@ -65,6 +51,20 @@ def login_authorize():
             return redirect(url_for("login"))
 
 
+@app.route('/logout')
+def logout():
+    if 'userid' in session:
+        session.pop('userid',None)
+        session.pop('username',None)
+        flash("User Logged Out")
+    return render_template('login.html');
+
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
+
+
 @app.route("/register_user", methods=["POST"])
 def register_user():
     if request.method == "POST":
@@ -74,13 +74,7 @@ def register_user():
         error = validate_register_user(fullname,username,password)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("INSERT INTO users(full_name, username, password) VALUES (%s, %s, %s)",
-                            (fullname,username,password),)
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_users.register_user(fullname,username, password)
                 flash("User Added Successflly. Please try logging in.")
                 return redirect(url_for("login"))
 
@@ -92,19 +86,25 @@ def register_user():
             return redirect(url_for("register"))
 
 
+@app.route("/home")
+def index():
+    if 'userid' in session:
+        return render_template("index.html",res={"username":session['username']})
+    else:
+        return redirect(url_for("login"))
+
+
 @app.route("/expense_head")
 def expense_head():
     if 'userid' in session:
         try:
-            conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM expense_head where user_id=%s", (session['userid'],) )
-            data = cur.fetchall()
-            cur.close()
-            conn.close()
+            data = obj_expense_head.expense_head(session['userid'])
             return render_template("expense_head.html", res={"username": session['username'],"expense_head":data})
         except Exception as error:
-            print(error)
+            # print(error)
+            # import traceback
+            # traceback.print_stack()
+            raise error
             return render_template("error_occured.html")
     else:
         return redirect(url_for("login"))
@@ -116,13 +116,7 @@ def insert_expense_head():
         error = validate_head(name)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("INSERT INTO expense_head(expense_head_name, user_id ) VALUES (%s, %s)",
-                            (name,session['userid']),)
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_expense_head.insert_expense_head(name,session['userid'])
                 flash("Data Inserted Successfully")
                 return redirect(url_for("expense_head"))
             except Exception as error:
@@ -142,13 +136,7 @@ def update_expense_head():
         error = validate_head(name)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("UPDATE expense_head SET expense_head_name=%s  WHERE expense_head_id=%s",
-                    (name, id_data), )
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_expense_head.update_expense_head(name, id_data)
                 flash("Data Updated Successfully")
                 return redirect(url_for("expense_head"))
             except Exception as error:
@@ -163,12 +151,7 @@ def update_expense_head():
 def income_head():
     if 'userid' in session:
         try:
-            conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM income_head where user_id=%s", (session['userid'],) )
-            data = cur.fetchall()
-            cur.close()
-            conn.close()
+            data = obj_income_head.income_head(session['userid'])
             return render_template("income_head.html", res={"username": session['username'], "income_head": data})
         except Exception as error:
             print(error)
@@ -183,13 +166,7 @@ def insert_income_head():
         error = validate_head(name)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("INSERT INTO income_head(income_head_name, user_id ) VALUES (%s, %s)",
-                            (name,session['userid']),)
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_income_head.insert_income_head(name,session['userid'])
                 flash("Data Inserted Successfully")
                 return redirect(url_for("income_head"))
             except Exception as error:
@@ -209,13 +186,7 @@ def update_income_head():
         error = validate_head(name)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("UPDATE income_head SET income_head_name=%s  WHERE income_head_id=%s",
-                    (name, id_data), )
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_income_head.update_income_head(name, id_data)
                 flash("Data Updated Successfully")
                 return redirect(url_for("income_head"))
             except Exception as error:
@@ -229,14 +200,8 @@ def update_income_head():
 @app.route("/record_expense")
 def record_expense():
     if 'userid' in session:
-        conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM expense_head where user_id=%s", (session['userid'],))
-        expense_head_list = cur.fetchall()
-        cur.execute("SELECT * FROM income_head where user_id=%s", (session['userid'],))
-        income_head_list = cur.fetchall()
-        cur.close()
-        conn.close()
+        expense_head_list = obj_expense_head.expense_head(session['userid'])
+        income_head_list = obj_income_head.income_head(session['userid'])
         return render_template("record_expense.html",res={"username":session['username'],"expense_head_list":expense_head_list,
                                                           "income_head_list":income_head_list})
     else:
@@ -248,22 +213,18 @@ def insert_record_expense():
     if request.method == "POST":
         amount = request.form["amount"]
         comment = request.form["comment"]
+        fromdate = request.form["fromdate"]
         income_head_id = request.form.get('income_head_id')
         expense_head_id = request.form.get('expense_head_id')
-        error = validate_insert_record_expense(amount,income_head_id,expense_head_id)
+        error = validate_insert_record_expense(fromdate,amount,income_head_id,expense_head_id)
         if error is None:
             try:
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("INSERT INTO expense_list(amount,comment,income_head_id,expense_head_id,user_id ) VALUES (%s,%s,%s,%s,%s)",
-                            (amount,comment,income_head_id,expense_head_id,session['userid']),)
-                conn.commit()
-                cur.close()
-                conn.close()
+                obj_record_expense.insert_record_expense(fromdate,amount,comment,income_head_id,expense_head_id,session['userid'])
                 flash("Expense Recorded Successfully")
                 return redirect(url_for("record_expense"))
             except Exception as error:
                 print(error)
+                raise error
                 return render_template("error_occured.html")
         else:
             flash(error)
@@ -274,30 +235,13 @@ def insert_record_expense():
 def expense_report():
     if 'userid' in session:
         try:
-            conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM expense_head where user_id=%s", (session['userid'],))
-            expense_head_list = cur.fetchall()
-            cur.close()
-            conn.close()
+            expense_head_list = obj_expense_head.expense_head(session['userid'])
             if request.method == "POST":
                 fromdate = request.form["fromdate"]
                 todate = request.form["todate"]
                 expense_head_id = request.form.get('expense_head_id')
-                conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-                cur = conn.cursor()
-                cur.execute("SELECT el.expense_list_id,el.created_timestamp,ih.income_head_name,el.comment,el.amount "
-                            "FROM expense_list el inner join income_head ih on el.income_head_id = ih.income_head_id "
-                            "where el.user_id=%s and el.expense_head_id=%s and date(el.created_timestamp) >= %s "
-                            "and date(el.created_timestamp) <= %s ORDER BY expense_list_id desc",
-                            (session['userid'],expense_head_id,fromdate,todate))
-                trans_list = cur.fetchall()
-                print(type(trans_list))
-                print(trans_list)
+                trans_list = obj_expense_report.expense_report(session['userid'],expense_head_id,fromdate,todate)
                 TotalAmt=sum([pair[4] for pair in trans_list])
-                cur.close()
-                cur.close()
-                conn.close()
                 return render_template("expense_report.html",res={"username":session['username'],
                                                                   "expense_head_list":expense_head_list,
                                                                   "expense_head_id":expense_head_id,"trans_list":trans_list,
@@ -343,10 +287,12 @@ def validate_head(name):
     return error
 
 
-def validate_insert_record_expense(amount,income_head_id,expense_head_id):
+def validate_insert_record_expense(fromdate,amount,income_head_id,expense_head_id):
     error = None
     if not amount:
         error = "amount is required."
+    elif not fromdate:
+        error = "expense date is required."
     elif not income_head_id:
         error = "income head is required."
     elif not expense_head_id:
